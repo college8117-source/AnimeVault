@@ -1,25 +1,79 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-    <link rel="icon" type="image/png" href="./assets/favicon.png?v=2">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AnimeVault</title>
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="description"
+    content="AnimeVault anime details, seasons and episodes"
+  >
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="./assets/favicon.png?v=2"
+  >
+
+  <title>AnimeVault</title>
+
+  <link
+    rel="stylesheet"
+    href="./css/style.css"
+  >
 </head>
+
 <body>
-<header class="header"> 
-  <img src="./assets/logo.png" alt="AnimeVault Logo">
-<a class="logo" href="index.html">ANIME<span>VAULT</span></a>
-<nav><a href="index.html">Home</a></nav>
-</header>
 
-<main class="container">
-<a class="back" href="index.html">← Back</a>
-<div id="content"></div>
-</main>
+  <!-- HEADER -->
+  <header class="header">
 
-<script src="js/api.js"></script>
-<script src="js/anime.js"></script>
+    <a
+      class="logo"
+      href="index.html"
+      aria-label="AnimeVault Home"
+    >
+
+      <img
+        src="./assets/logo.png"
+        alt="AnimeVault Logo"
+      >
+
+      <span>AnimeVault</span>
+
+    </a>
+
+    <nav aria-label="Main navigation">
+      <a href="index.html">Home</a>
+    </nav>
+
+  </header>
+
+
+  <!-- MAIN CONTENT -->
+  <main class="container">
+
+    <a
+      class="back"
+      href="index.html"
+    >
+      ← Back
+    </a>
+
+    <div id="content"></div>
+
+  </main>
+
+
+  <!-- JAVASCRIPT -->
+  <script src="./js/api.js"></script>
+  <script src="./js/anime.js"></script>
+
 </body>
+
 </html>
