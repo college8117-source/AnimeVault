@@ -134,8 +134,25 @@ router.get(
         );
 
 
+      /*
+       * Preserve the original uploaded filename.
+       *
+       * Example:
+       * Episode 1.mp4
+       * Episode 2.webm
+       * Episode 3.mkv
+       */
+
+      const fileName =
+        String(
+          episode.fileName ||
+          'episode'
+        ).trim();
+
+
       res.json({
-        url
+        url,
+        fileName
       });
 
     } catch (error) {

@@ -69,15 +69,105 @@ async function downloadEpisode(
 
 
     /*
-     * Open the Cloudinary URL.
+     * Original filename saved in Firestore.
      *
-     * The browser/Cloudinary will handle
-     * the actual video response.
+     * Examples:
+     * Episode 1.mp4
+     * Episode 2.webm
+     * Episode 3.mkv
      */
 
-    window.location.href =
-      data.url;
+    const fileName =
+      String(
+        data.fileName ||
+        "episode"
+      ).trim();
 
+
+    /*
+     * Fetch the Cloudinary file.
+     */
+
+    const response =
+      await fetch(
+        data.url
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Unable to download video."
+      );
+
+    }
+
+
+    /*
+     * Convert response to Blob.
+     */
+
+    const blob =
+      await response.blob();
+
+
+    /*
+     * Create temporary browser URL.
+     */
+
+    const blobUrl =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    /*
+     * Create hidden download link.
+     */
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      blobUrl;
+
+    link.download =
+      fileName;
+
+    link.style.display =
+      "none";
+
+
+    document.body.appendChild(
+      link
+    );
+
+
+    /*
+     * Start download.
+     */
+
+    link.click();
+
+
+    /*
+     * Cleanup.
+     */
+
+    link.remove();
+
+    URL.revokeObjectURL(
+      blobUrl
+    );
+
+
+    button.disabled = false;
+
+    button.textContent =
+      originalText;
 
   } catch (error) {
 
@@ -286,14 +376,17 @@ function renderSeason(season) {
         </h2>
 
         <span class="episode-count">
+
           ${
             episodes.length
           }
+
           ${
             episodes.length === 1
               ? "Episode"
               : "Episodes"
           }
+
         </span>
 
       </div>
@@ -304,11 +397,13 @@ function renderSeason(season) {
           ? `
             <div class="episodes">
 
-              ${episodes
-                .map(
-                  renderEpisode
-                )
-                .join("")}
+              ${
+                episodes
+                  .map(
+                    renderEpisode
+                  )
+                  .join("")
+              }
 
             </div>
           `
