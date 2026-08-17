@@ -129,74 +129,37 @@ export function createSignedVideoUpload(
 
 
 /* =========================================================
-   GET VIDEO URL
+   GET ORIGINAL VIDEO URL
 ========================================================= */
 
 export function getVideoUrl(
-  publicId,
-  originalFileName = ''
+  publicId
 ) {
 
   configure();
 
 
   /*
-   * Extract the original extension.
+   * IMPORTANT:
    *
-   * Examples:
-   * video.mp4  -> mp4
-   * video.webm -> webm
-   * video.mkv  -> mkv
-   */
-
-  const match =
-    String(
-      originalFileName || ''
-    ).match(
-      /\.([a-zA-Z0-9]+)$/
-    );
-
-
-  const extension =
-    match
-      ? match[1].toLowerCase()
-      : null;
-
-
-  /*
-   * Without a requested format Cloudinary delivers
-   * the originally uploaded format.
+   * No format transformation is requested.
    *
-   * When we know the original extension, explicitly
-   * include it in the delivery URL so the requested
-   * format remains unambiguous.
+   * This allows Cloudinary to deliver the uploaded
+   * asset in its original stored format.
    */
-
-  const options = {
-
-    resource_type:
-      'video',
-
-    type:
-      'upload',
-
-    secure:
-      true
-
-  };
-
-
-  if (extension) {
-
-    options.format =
-      extension;
-
-  }
-
 
   return cloudinary.url(
     publicId,
-    options
+    {
+      resource_type:
+        'video',
+
+      type:
+        'upload',
+
+      secure:
+        true
+    }
   );
 
 }

@@ -128,6 +128,14 @@ router.get(
       }
 
 
+      /*
+       * Generate the original Cloudinary video URL.
+       *
+       * No format conversion is requested here.
+       * This is important because the uploaded format
+       * should remain the original format.
+       */
+
       const url =
         getVideoUrl(
           episode.cloudinaryPublicId
@@ -135,12 +143,20 @@ router.get(
 
 
       /*
-       * Preserve the original uploaded filename.
+       * Original filename stored during upload.
        *
-       * Example:
+       * Examples:
        * Episode 1.mp4
-       * Episode 2.webm
-       * Episode 3.mkv
+       * Episode 2.mkv
+       * Episode 3.webm
+       * Episode 4.avi
+       * Episode 5.mov
+       * Episode 6.wmv
+       * Episode 7.flv
+       * Episode 8.m4v
+       * Episode 9.ts
+       * Episode 10.m2ts
+       * Episode 11.3gp
        */
 
       const fileName =
