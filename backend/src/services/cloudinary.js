@@ -2,6 +2,7 @@ import { v2 as cloudinary } from 'cloudinary';
 
 
 function configure() {
+
   const {
     CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY,
@@ -14,13 +15,16 @@ function configure() {
     !CLOUDINARY_API_KEY ||
     !CLOUDINARY_API_SECRET
   ) {
+
     throw new Error(
       'Cloudinary is not configured.'
     );
+
   }
 
 
   cloudinary.config({
+
     cloud_name:
       CLOUDINARY_CLOUD_NAME,
 
@@ -29,7 +33,9 @@ function configure() {
 
     api_secret:
       CLOUDINARY_API_SECRET
+
   });
+
 }
 
 
@@ -65,7 +71,10 @@ export function createSignedVideoUpload(
         /[^a-zA-Z0-9_-]/g,
         '_'
       )
-      .slice(0, 120);
+      .slice(
+        0,
+        120
+      );
 
 
   const publicId =
@@ -73,9 +82,8 @@ export function createSignedVideoUpload(
 
 
   /*
-   * IMPORTANT:
-   *
    * Only these parameters are signed.
+   *
    * resource_type is NOT part of the signature.
    */
 
@@ -125,21 +133,70 @@ export function createSignedVideoUpload(
 ========================================================= */
 
 export function getVideoUrl(
-  publicId
+  publicId,
+  originalFileName = ''
 ) {
 
   configure();
 
 
+  /*
+   * Extract the original extension.
+   *
+   * Examples:
+   * video.mp4  -> mp4
+   * video.webm -> webm
+   * video.mkv  -> mkv
+   */
+
+  const match =
+    String(
+      originalFileName || ''
+    ).match(
+      /\.([a-zA-Z0-9]+)$/
+    );
+
+
+  const extension =
+    match
+      ? match[1].toLowerCase()
+      : null;
+
+
+  /*
+   * Without a requested format Cloudinary delivers
+   * the originally uploaded format.
+   *
+   * When we know the original extension, explicitly
+   * include it in the delivery URL so the requested
+   * format remains unambiguous.
+   */
+
+  const options = {
+
+    resource_type:
+      'video',
+
+    type:
+      'upload',
+
+    secure:
+      true
+
+  };
+
+
+  if (extension) {
+
+    options.format =
+      extension;
+
+  }
+
+
   return cloudinary.url(
     publicId,
-    {
-      resource_type: 'video',
-
-      type: 'upload',
-
-      secure: true
-    }
+    options
   );
 
 }
