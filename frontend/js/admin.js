@@ -108,7 +108,7 @@ const adminStatus =
 
 const API_URL =
   window.ANIMEVAULT_API ||
-  "http://localhost:4000/api";
+  "https://animevault-api-miab.onrender.com/api";
 
 
 /* =========================================================

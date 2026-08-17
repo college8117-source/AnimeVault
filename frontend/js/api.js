@@ -1,4 +1,6 @@
-window.ANIMEVAULT_API = window.ANIMEVAULT_API || 'http://localhost:4000/api';
+window.ANIMEVAULT_API =
+  window.ANIMEVAULT_API ||
+  'https://animevault-api-miab.onrender.com/api';
 
 async function api(path, options = {}) {
   const headers = {
