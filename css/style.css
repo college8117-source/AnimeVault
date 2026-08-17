@@ -2078,3 +2078,26 @@ video {
   }
 
 }
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.logo span {
+  color: var(--accent);
+}
+
+@media (max-width: 680px) {
+  .logo img {
+    width: 32px;
+    height: 32px;
+  }
+}
