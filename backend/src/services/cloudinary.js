@@ -1,6 +1,10 @@
 import { v2 as cloudinary } from 'cloudinary';
 
 
+/* =========================================================
+   CONFIGURE CLOUDINARY
+========================================================= */
+
 function configure() {
 
   const {
@@ -15,16 +19,13 @@ function configure() {
     !CLOUDINARY_API_KEY ||
     !CLOUDINARY_API_SECRET
   ) {
-
     throw new Error(
       'Cloudinary is not configured.'
     );
-
   }
 
 
   cloudinary.config({
-
     cloud_name:
       CLOUDINARY_CLOUD_NAME,
 
@@ -33,9 +34,7 @@ function configure() {
 
     api_secret:
       CLOUDINARY_API_SECRET
-
   });
-
 }
 
 
@@ -62,7 +61,9 @@ export function createSignedVideoUpload(
 
 
   const safeFileName =
-    String(fileName || 'episode')
+    String(
+      fileName || 'episode'
+    )
       .replace(
         /\.[^/.]+$/,
         ''
@@ -71,10 +72,7 @@ export function createSignedVideoUpload(
         /[^a-zA-Z0-9_-]/g,
         '_'
       )
-      .slice(
-        0,
-        120
-      );
+      .slice(0, 120);
 
 
   const publicId =
@@ -82,9 +80,10 @@ export function createSignedVideoUpload(
 
 
   /*
-   * Only these parameters are signed.
+   * IMPORTANT:
    *
-   * resource_type is NOT part of the signature.
+   * resource_type is NOT included
+   * in the signature.
    */
 
   const paramsToSign = {
@@ -129,7 +128,7 @@ export function createSignedVideoUpload(
 
 
 /* =========================================================
-   GET ORIGINAL VIDEO URL
+   GET VIDEO URL
 ========================================================= */
 
 export function getVideoUrl(
@@ -139,27 +138,71 @@ export function getVideoUrl(
   configure();
 
 
-  /*
-   * IMPORTANT:
-   *
-   * No format transformation is requested.
-   *
-   * This allows Cloudinary to deliver the uploaded
-   * asset in its original stored format.
-   */
-
   return cloudinary.url(
     publicId,
     {
-      resource_type:
-        'video',
-
-      type:
-        'upload',
-
-      secure:
-        true
+      resource_type: 'video',
+      type: 'upload',
+      secure: true
     }
   );
+
+}
+
+
+/* =========================================================
+   DELETE VIDEO
+========================================================= */
+
+export async function deleteVideo(
+  publicId
+) {
+
+  configure();
+
+
+  if (!publicId) {
+
+    throw new Error(
+      'Cloudinary public ID is required.'
+    );
+
+  }
+
+
+  const result =
+    await cloudinary.uploader.destroy(
+      publicId,
+      {
+        resource_type: 'video',
+        type: 'upload',
+        invalidate: true
+      }
+    );
+
+
+  /*
+   * Cloudinary normally returns:
+   *
+   * { result: "ok" }
+   *
+   * or:
+   *
+   * { result: "not found" }
+   */
+
+  if (
+    result.result !== 'ok' &&
+    result.result !== 'not found'
+  ) {
+
+    throw new Error(
+      `Cloudinary delete failed: ${result.result}`
+    );
+
+  }
+
+
+  return result;
 
 }
