@@ -6,14 +6,11 @@ import {
   listAnime,
   getAnime,
   getEpisode,
-
   createAnime,
   updateAnime,
-
   createSeason,
   listSeasons,
   updateSeason,
-
   createEpisode,
   listEpisodes,
   updateEpisode,
@@ -27,7 +24,7 @@ import {
 } from './services/cloudinary.js';
 
 
-export const router = Router();
+const router = Router();
 
 
 /* =========================================================
@@ -45,15 +42,14 @@ router.get('/health', (_req, res) => {
 
 
 /* =========================================================
-   PUBLIC — LIST ANIME
+   PUBLIC - LIST ANIME
 ========================================================= */
 
 router.get('/anime', async (_req, res, next) => {
 
   try {
 
-    const anime =
-      await listAnime();
+    const anime = await listAnime();
 
     res.json({
       anime
@@ -69,18 +65,16 @@ router.get('/anime', async (_req, res, next) => {
 
 
 /* =========================================================
-   PUBLIC — SINGLE ANIME
+   PUBLIC - SINGLE ANIME
 ========================================================= */
 
 router.get('/anime/:id', async (req, res, next) => {
 
   try {
 
-    const anime =
-      await getAnime(
-        req.params.id
-      );
-
+    const anime = await getAnime(
+      req.params.id
+    );
 
     if (!anime) {
 
@@ -90,7 +84,6 @@ router.get('/anime/:id', async (req, res, next) => {
 
     }
 
-
     res.json({
       anime
     });
@@ -105,7 +98,7 @@ router.get('/anime/:id', async (req, res, next) => {
 
 
 /* =========================================================
-   PUBLIC — EPISODE DOWNLOAD
+   PUBLIC - EPISODE DOWNLOAD
 ========================================================= */
 
 router.get(
@@ -114,11 +107,9 @@ router.get(
 
     try {
 
-      const episode =
-        await getEpisode(
-          req.params.id
-        );
-
+      const episode = await getEpisode(
+        req.params.id
+      );
 
       if (!episode) {
 
@@ -128,7 +119,6 @@ router.get(
 
       }
 
-
       if (!episode.cloudinaryPublicId) {
 
         return res.status(404).json({
@@ -137,19 +127,13 @@ router.get(
 
       }
 
+      const url = getVideoUrl(
+        episode.cloudinaryPublicId
+      );
 
-      const url =
-        getVideoUrl(
-          episode.cloudinaryPublicId
-        );
-
-
-      const fileName =
-        String(
-          episode.fileName ||
-          'episode'
-        ).trim();
-
+      const fileName = String(
+        episode.fileName || 'episode'
+      ).trim();
 
       res.json({
         url,
@@ -177,7 +161,7 @@ router.use(
 
 
 /* =========================================================
-   ADMIN — LIST ALL ANIME
+   ADMIN - LIST ANIME
 ========================================================= */
 
 router.get(
@@ -186,8 +170,7 @@ router.get(
 
     try {
 
-      const anime =
-        await listAnime();
+      const anime = await listAnime();
 
       res.json({
         anime
@@ -204,7 +187,7 @@ router.get(
 
 
 /* =========================================================
-   ADMIN — CREATE ANIME
+   ADMIN - CREATE ANIME
 ========================================================= */
 
 router.post(
@@ -214,11 +197,14 @@ router.post(
     try {
 
       const name =
-        req.body.name?.trim();
+        typeof req.body.name === 'string'
+          ? req.body.name.trim()
+          : '';
 
       const description =
-        req.body.description?.trim() || '';
-
+        typeof req.body.description === 'string'
+          ? req.body.description.trim()
+          : '';
 
       if (!name) {
 
@@ -228,16 +214,10 @@ router.post(
 
       }
 
-
-      const anime =
-        await createAnime({
-
-          name,
-
-          description
-
-        });
-
+      const anime = await createAnime({
+        name,
+        description
+      });
 
       res.status(201).json({
         anime
@@ -257,7 +237,6 @@ router.post(
 
       }
 
-
       next(error);
 
     }
@@ -267,7 +246,7 @@ router.post(
 
 
 /* =========================================================
-   ADMIN — UPDATE ANIME
+   ADMIN - UPDATE ANIME
 ========================================================= */
 
 router.put(
@@ -277,11 +256,14 @@ router.put(
     try {
 
       const name =
-        req.body.name?.trim();
+        typeof req.body.name === 'string'
+          ? req.body.name.trim()
+          : '';
 
       const description =
-        req.body.description?.trim() || '';
-
+        typeof req.body.description === 'string'
+          ? req.body.description.trim()
+          : '';
 
       if (!name) {
 
@@ -291,19 +273,13 @@ router.put(
 
       }
 
-
-      const anime =
-        await updateAnime(
-
-          req.params.id,
-
-          {
-            name,
-            description
-          }
-
-        );
-
+      const anime = await updateAnime(
+        req.params.id,
+        {
+          name,
+          description
+        }
+      );
 
       res.json({
         anime
@@ -323,18 +299,16 @@ router.put(
 
       }
 
-
       if (
         error.message ===
         'Anime not found.'
       ) {
 
         return res.status(404).json({
-          error: error.message
+          error: 'Anime not found.'
         });
 
       }
-
 
       next(error);
 
@@ -345,7 +319,7 @@ router.put(
 
 
 /* =========================================================
-   ADMIN — LIST SEASONS
+   ADMIN - LIST SEASONS
 ========================================================= */
 
 router.get(
@@ -354,11 +328,9 @@ router.get(
 
     try {
 
-      const seasons =
-        await listSeasons(
-          req.params.animeId
-        );
-
+      const seasons = await listSeasons(
+        req.params.animeId
+      );
 
       res.json({
         seasons
@@ -375,7 +347,7 @@ router.get(
 
 
 /* =========================================================
-   ADMIN — CREATE / GET SEASON
+   ADMIN - CREATE SEASON
 ========================================================= */
 
 router.post(
@@ -385,13 +357,12 @@ router.post(
     try {
 
       const animeId =
-        req.body.animeId;
+        typeof req.body.animeId === 'string'
+          ? req.body.animeId.trim()
+          : '';
 
       const seasonNumber =
-        Number(
-          req.body.seasonNumber
-        );
-
+        Number(req.body.seasonNumber);
 
       if (!animeId) {
 
@@ -401,11 +372,8 @@ router.post(
 
       }
 
-
       if (
-        !Number.isInteger(
-          seasonNumber
-        ) ||
+        !Number.isInteger(seasonNumber) ||
         seasonNumber < 1
       ) {
 
@@ -416,22 +384,28 @@ router.post(
 
       }
 
-
-      const season =
-        await createSeason({
-
-          animeId,
-
-          seasonNumber
-
-        });
-
+      const season = await createSeason({
+        animeId,
+        seasonNumber
+      });
 
       res.status(201).json({
         season
       });
 
     } catch (error) {
+
+      if (
+        error.message?.includes(
+          'already exists'
+        )
+      ) {
+
+        return res.status(409).json({
+          error: error.message
+        });
+
+      }
 
       next(error);
 
@@ -442,7 +416,7 @@ router.post(
 
 
 /* =========================================================
-   ADMIN — UPDATE SEASON
+   ADMIN - UPDATE SEASON
 ========================================================= */
 
 router.put(
@@ -452,15 +426,10 @@ router.put(
     try {
 
       const seasonNumber =
-        Number(
-          req.body.seasonNumber
-        );
-
+        Number(req.body.seasonNumber);
 
       if (
-        !Number.isInteger(
-          seasonNumber
-        ) ||
+        !Number.isInteger(seasonNumber) ||
         seasonNumber < 1
       ) {
 
@@ -471,16 +440,10 @@ router.put(
 
       }
 
-
-      const season =
-        await updateSeason(
-
-          req.params.id,
-
-          seasonNumber
-
-        );
-
+      const season = await updateSeason(
+        req.params.id,
+        seasonNumber
+      );
 
       res.json({
         season
@@ -500,18 +463,16 @@ router.put(
 
       }
 
-
       if (
         error.message ===
         'Season not found.'
       ) {
 
         return res.status(404).json({
-          error: error.message
+          error: 'Season not found.'
         });
 
       }
-
 
       next(error);
 
@@ -522,7 +483,7 @@ router.put(
 
 
 /* =========================================================
-   ADMIN — LIST EPISODES
+   ADMIN - LIST EPISODES
 ========================================================= */
 
 router.get(
@@ -531,11 +492,9 @@ router.get(
 
     try {
 
-      const episodes =
-        await listEpisodes(
-          req.params.seasonId
-        );
-
+      const episodes = await listEpisodes(
+        req.params.seasonId
+      );
 
       res.json({
         episodes
@@ -552,7 +511,7 @@ router.get(
 
 
 /* =========================================================
-   ADMIN — CLOUDINARY SIGNATURE
+   ADMIN - CLOUDINARY SIGNATURE
 ========================================================= */
 
 router.post(
@@ -562,15 +521,14 @@ router.post(
     try {
 
       const fileName =
-        req.body.fileName?.trim() ||
-        'episode';
-
+        typeof req.body.fileName === 'string'
+          ? req.body.fileName.trim()
+          : 'episode';
 
       const result =
         createSignedVideoUpload(
-          fileName
+          fileName || 'episode'
         );
-
 
       res.json(result);
 
@@ -585,7 +543,7 @@ router.post(
 
 
 /* =========================================================
-   ADMIN — CREATE EPISODE
+   ADMIN - CREATE EPISODE
 ========================================================= */
 
 router.post(
@@ -594,21 +552,15 @@ router.post(
 
     try {
 
-      const required = [
-
+      const requiredFields = [
         'animeId',
-
         'seasonId',
-
         'episodeNumber',
-
         'cloudinaryPublicId'
-
       ];
 
-
       const missing =
-        required.find(
+        requiredFields.find(
           key => {
 
             const value =
@@ -623,56 +575,41 @@ router.post(
           }
         );
 
-
       if (missing) {
 
         return res.status(422).json({
-
           error:
             `${missing} is required.`
-
         });
 
       }
-
 
       const episodeNumber =
         Number(
           req.body.episodeNumber
         );
 
-
       if (
-        !Number.isInteger(
-          episodeNumber
-        ) ||
+        !Number.isInteger(episodeNumber) ||
         episodeNumber < 1
       ) {
 
         return res.status(422).json({
-
           error:
             'episodeNumber must be a positive integer.'
-
         });
 
       }
 
-
       const episode =
         await createEpisode({
-
           ...req.body,
-
           episodeNumber
-
         });
-
 
       res.status(201).json({
         episode
       });
-
 
     } catch (error) {
 
@@ -683,14 +620,10 @@ router.post(
       ) {
 
         return res.status(409).json({
-
-          error:
-            error.message
-
+          error: error.message
         });
 
       }
-
 
       next(error);
 
@@ -701,7 +634,7 @@ router.post(
 
 
 /* =========================================================
-   ADMIN — UPDATE EPISODE
+   ADMIN - UPDATE EPISODE
 ========================================================= */
 
 router.put(
@@ -710,34 +643,46 @@ router.put(
 
     try {
 
-      const episode =
-        await updateEpisode(
-
-          req.params.id,
-
-          {
-
-            episodeNumber:
-              req.body.episodeNumber,
-
-            title:
-              req.body.title,
-
-            description:
-              req.body.description,
-
-            language:
-              req.body.language
-
-          }
-
+      const episodeNumber =
+        Number(
+          req.body.episodeNumber
         );
 
+      if (
+        !Number.isInteger(episodeNumber) ||
+        episodeNumber < 1
+      ) {
+
+        return res.status(422).json({
+          error:
+            'episodeNumber must be a positive integer.'
+        });
+
+      }
+
+      const episode =
+        await updateEpisode(
+          req.params.id,
+          {
+            episodeNumber,
+            title:
+              typeof req.body.title === 'string'
+                ? req.body.title
+                : '',
+            description:
+              typeof req.body.description === 'string'
+                ? req.body.description
+                : '',
+            language:
+              typeof req.body.language === 'string'
+                ? req.body.language
+                : ''
+          }
+        );
 
       res.json({
         episode
       });
-
 
     } catch (error) {
 
@@ -748,14 +693,10 @@ router.put(
       ) {
 
         return res.status(409).json({
-
-          error:
-            error.message
-
+          error: error.message
         });
 
       }
-
 
       if (
         error.message ===
@@ -763,14 +704,10 @@ router.put(
       ) {
 
         return res.status(404).json({
-
-          error:
-            error.message
-
+          error: 'Episode not found.'
         });
 
       }
-
 
       next(error);
 
@@ -781,7 +718,7 @@ router.put(
 
 
 /* =========================================================
-   ADMIN — DELETE EPISODE
+   ADMIN - DELETE EPISODE
 ========================================================= */
 
 router.delete(
@@ -790,16 +727,10 @@ router.delete(
 
     try {
 
-      /*
-       * First get the episode so we know
-       * its Cloudinary public ID.
-       */
-
       const episode =
         await getEpisode(
           req.params.id
         );
-
 
       if (!episode) {
 
@@ -808,14 +739,6 @@ router.delete(
         });
 
       }
-
-
-      /*
-       * Delete Cloudinary video first.
-       *
-       * If there is no Cloudinary ID,
-       * we can still remove the Firestore record.
-       */
 
       if (
         episode.cloudinaryPublicId
@@ -827,28 +750,17 @@ router.delete(
 
       }
 
-
-      /*
-       * Delete Firestore record.
-       */
-
       await deleteEpisode(
         req.params.id
       );
 
-
       res.json({
-
         ok: true,
-
         message:
           'Episode deleted successfully.',
-
         episodeId:
           req.params.id
-
       });
-
 
     } catch (error) {
 
@@ -858,3 +770,10 @@ router.delete(
 
   }
 );
+
+
+/* =========================================================
+   EXPORT
+========================================================= */
+
+export { router };

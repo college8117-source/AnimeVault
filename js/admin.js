@@ -1,3 +1,5 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -5,18 +7,20 @@ import {
   onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-import { firebaseConfig } from './firebase-config.js';
+import { firebaseConfig } from './firebase.js';
 
-import {
-  api
-} from './api.js';
+import { api } from './api.js';
 
 
 /* =========================================================
    FIREBASE
 ========================================================= */
 
-const auth = getAuth();
+const firebaseApp =
+  initializeApp(firebaseConfig);
+
+const auth =
+  getAuth(firebaseApp);
 
 
 /* =========================================================
@@ -172,13 +176,11 @@ function escapeHtml(value) {
 
   return String(value ?? '')
     .replace(/[&<>"']/g, char => ({
-
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
       "'": '&#039;'
-
     }[char]));
 
 }
@@ -188,6 +190,10 @@ function setStatus(
   message,
   type = 'normal'
 ) {
+
+  if (!adminStatus) {
+    return;
+  }
 
   adminStatus.textContent =
     message || '';
@@ -234,17 +240,23 @@ function setButtonLoading(
 
 function getFirebaseToken() {
 
-  return currentUser
-    ? currentUser.getIdToken()
-    : Promise.reject(
-        new Error('Admin is not logged in.')
-      );
+  if (!currentUser) {
+
+    return Promise.reject(
+      new Error(
+        'Admin is not logged in.'
+      )
+    );
+
+  }
+
+  return currentUser.getIdToken();
 
 }
 
 
 /* =========================================================
-   API WRAPPER WITH FIREBASE TOKEN
+   API WRAPPER
 ========================================================= */
 
 async function adminApi(
@@ -261,7 +273,10 @@ async function adminApi(
     ...(options.headers || {}),
 
     Authorization:
-      `Bearer ${token}`
+      `Bearer ${token}`,
+
+    'Content-Type':
+      'application/json'
 
   };
 
@@ -289,16 +304,44 @@ loginForm?.addEventListener(
 
 
     const email =
-      emailInput.value.trim();
+      emailInput?.value.trim() || '';
 
     const password =
-      passwordInput.value;
+      passwordInput?.value || '';
+
+
+    if (!email) {
+
+      setStatus(
+        'Email is required.',
+        'error'
+      );
+
+      return;
+
+    }
+
+
+    if (!password) {
+
+      setStatus(
+        'Password is required.',
+        'error'
+      );
+
+      return;
+
+    }
+
+
+    const button =
+      loginForm.querySelector('button');
 
 
     try {
 
       setButtonLoading(
-        loginForm.querySelector('button'),
+        button,
         true,
         'Logging in...'
       );
@@ -311,7 +354,10 @@ loginForm?.addEventListener(
       );
 
 
-      passwordInput.value = '';
+      if (passwordInput) {
+        passwordInput.value = '';
+      }
+
 
       setStatus(
         'Login successful.',
@@ -321,18 +367,20 @@ loginForm?.addEventListener(
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        'Firebase login error:',
+        error
+      );
+
 
       setStatus(
-        error.message ||
+        error?.message ||
         'Login failed.',
         'error'
       );
 
-    } finally {
 
-      const button =
-        loginForm.querySelector('button');
+    } finally {
 
       if (button) {
 
@@ -364,12 +412,19 @@ logoutButton?.addEventListener(
 
       resetAdminState();
 
+      setStatus(
+        'Logged out successfully.',
+        'success'
+      );
+
+
     } catch (error) {
 
       console.error(error);
 
       setStatus(
-        error.message,
+        error?.message ||
+        'Logout failed.',
         'error'
       );
 
@@ -387,7 +442,8 @@ onAuthStateChanged(
   auth,
   async user => {
 
-    currentUser = user;
+    currentUser =
+      user;
 
 
     if (!user) {
@@ -414,16 +470,26 @@ onAuthStateChanged(
     );
 
 
+    setStatus(
+      'Checking admin access...'
+    );
+
+
     try {
 
       await loadAnime();
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        'Admin initialization error:',
+        error
+      );
+
 
       setStatus(
-        error.message,
+        error?.message ||
+        'Failed to load admin panel.',
         'error'
       );
 
@@ -451,6 +517,10 @@ function resetAdminState() {
 
   uploadItems = [];
 
+  editingAnimeId = null;
+
+  editingSeasonId = null;
+
 
   if (animeSelect) {
 
@@ -476,11 +546,21 @@ function resetAdminState() {
   }
 
 
-  uploadQueue.innerHTML = '';
+  if (uploadQueue) {
 
-  uploadSection.classList.add(
-    'hidden'
-  );
+    uploadQueue.innerHTML =
+      '';
+
+  }
+
+
+  if (uploadSection) {
+
+    uploadSection.classList.add(
+      'hidden'
+    );
+
+  }
 
 }
 
@@ -503,7 +583,7 @@ async function loadAnime() {
 
 
   animeList =
-    result.anime || [];
+    result?.anime || [];
 
 
   renderAnimeSelect();
@@ -512,7 +592,8 @@ async function loadAnime() {
   setStatus(
     animeList.length
       ? `${animeList.length} anime loaded.`
-      : 'No anime found.'
+      : 'No anime found.',
+    'success'
   );
 
 }
@@ -523,6 +604,11 @@ async function loadAnime() {
 ========================================================= */
 
 function renderAnimeSelect() {
+
+  if (!animeSelect) {
+    return;
+  }
+
 
   animeSelect.innerHTML = `
 
@@ -573,6 +659,16 @@ animeSelect?.addEventListener(
 
       selectedSeason = null;
 
+      episodes = [];
+
+      if (editAnimeButton) {
+        editAnimeButton.disabled = true;
+      }
+
+      if (newSeasonButton) {
+        newSeasonButton.disabled = true;
+      }
+
       renderSeasons();
 
       renderEpisodes();
@@ -589,11 +685,20 @@ animeSelect?.addEventListener(
       ) || null;
 
 
-    editAnimeButton.disabled =
-      !selectedAnime;
+    if (editAnimeButton) {
 
-    newSeasonButton.disabled =
-      !selectedAnime;
+      editAnimeButton.disabled =
+        !selectedAnime;
+
+    }
+
+
+    if (newSeasonButton) {
+
+      newSeasonButton.disabled =
+        !selectedAnime;
+
+    }
 
 
     try {
@@ -605,7 +710,8 @@ animeSelect?.addEventListener(
       console.error(error);
 
       setStatus(
-        error.message,
+        error?.message ||
+        'Failed to load seasons.',
         'error'
       );
 
@@ -635,10 +741,15 @@ async function loadSeasons() {
 
 
   seasons =
-    result.seasons || [];
+    result?.seasons || [];
 
 
-  selectedSeason = null;
+  selectedSeason =
+    null;
+
+
+  episodes =
+    [];
 
 
   renderSeasons();
@@ -653,6 +764,11 @@ async function loadSeasons() {
 ========================================================= */
 
 function renderSeasons() {
+
+  if (!seasonTabs) {
+    return;
+  }
+
 
   if (!selectedAnime) {
 
@@ -669,12 +785,23 @@ function renderSeasons() {
     seasonTabs.innerHTML =
       '<div class="empty-state">No seasons yet. Add Season to begin.</div>';
 
-    editSeasonButton.disabled =
-      true;
 
-    uploadSection.classList.add(
-      'hidden'
-    );
+    if (editSeasonButton) {
+
+      editSeasonButton.disabled =
+        true;
+
+    }
+
+
+    if (uploadSection) {
+
+      uploadSection.classList.add(
+        'hidden'
+      );
+
+    }
+
 
     return;
 
@@ -691,12 +818,14 @@ function renderSeasons() {
             ? 'active'
             : ''
         }"
-        data-season-id="${escapeHtml(season.id)}"
+        data-season-id="${escapeHtml(
+          season.id
+        )}"
       >
-
         Season
-        ${escapeHtml(season.seasonNumber)}
-
+        ${escapeHtml(
+          season.seasonNumber
+        )}
       </button>
 
     `).join('');
@@ -731,18 +860,28 @@ function renderSeasons() {
 
           updateSeasonUI();
 
-          await loadEpisodes();
+
+          try {
+
+            await loadEpisodes();
+
+          } catch (error) {
+
+            console.error(error);
+
+            setStatus(
+              error?.message ||
+              'Failed to load episodes.',
+              'error'
+            );
+
+          }
 
         }
       );
 
     });
 
-
-  /*
-   * Automatically select first season
-   * when nothing is selected.
-   */
 
   if (!selectedSeason) {
 
@@ -753,7 +892,17 @@ function renderSeasons() {
 
     updateSeasonUI();
 
-    loadEpisodes();
+    loadEpisodes().catch(error => {
+
+      console.error(error);
+
+      setStatus(
+        error?.message ||
+        'Failed to load episodes.',
+        'error'
+      );
+
+    });
 
   }
 
@@ -768,49 +917,80 @@ function updateSeasonUI() {
 
   if (!selectedSeason) {
 
-    selectedSeasonInfo.textContent =
-      'Select a season.';
+    if (selectedSeasonInfo) {
 
-    editSeasonButton.disabled =
-      true;
+      selectedSeasonInfo.textContent =
+        'Select a season.';
 
-    uploadSection.classList.add(
-      'hidden'
-    );
+    }
+
+
+    if (editSeasonButton) {
+
+      editSeasonButton.disabled =
+        true;
+
+    }
+
+
+    if (uploadSection) {
+
+      uploadSection.classList.add(
+        'hidden'
+      );
+
+    }
+
 
     return;
 
   }
 
 
-  selectedSeasonInfo.innerHTML = `
+  if (selectedSeasonInfo) {
 
-    <strong>
-      ${escapeHtml(
-        selectedAnime?.name || ''
-      )}
-    </strong>
+    selectedSeasonInfo.innerHTML = `
 
-    <span>
-      •
-    </span>
+      <strong>
+        ${escapeHtml(
+          selectedAnime?.name || ''
+        )}
+      </strong>
 
-    <strong>
-      Season
-      ${escapeHtml(
-        selectedSeason.seasonNumber
-      )}
-    </strong>
+      <span>
+        •
+      </span>
 
-  `;
+      <strong>
+        Season
+        ${escapeHtml(
+          selectedSeason.seasonNumber
+        )}
+      </strong>
+
+    `;
+
+  }
 
 
-  editSeasonButton.disabled =
-    false;
+  if (editSeasonButton) {
 
-  uploadSection.classList.remove(
-    'hidden'
-  );
+    editSeasonButton.disabled =
+      false;
+
+  }
+
+
+  if (uploadSection) {
+
+    uploadSection.classList.remove(
+      'hidden'
+    );
+
+  }
+
+
+  updateUploadButton();
 
 }
 
@@ -826,8 +1006,12 @@ async function loadEpisodes() {
   }
 
 
-  episodeList.innerHTML =
-    '<div class="loading-state">Loading episodes...</div>';
+  if (episodeList) {
+
+    episodeList.innerHTML =
+      '<div class="loading-state">Loading episodes...</div>';
+
+  }
 
 
   const result =
@@ -839,10 +1023,12 @@ async function loadEpisodes() {
 
 
   episodes =
-    result.episodes || [];
+    result?.episodes || [];
 
 
   renderEpisodes();
+
+  updateUploadButton();
 
 }
 
@@ -852,6 +1038,11 @@ async function loadEpisodes() {
 ========================================================= */
 
 function renderEpisodes() {
+
+  if (!episodeList) {
+    return;
+  }
+
 
   if (!selectedSeason) {
 
@@ -999,30 +1190,55 @@ newAnimeButton?.addEventListener(
   'click',
   () => {
 
-    editingAnimeId = null;
+    editingAnimeId =
+      null;
 
-    animeEditorTitle.textContent =
-      'Create New Anime';
 
-    animeSaveText.textContent =
-      'Create Anime';
+    if (animeEditorTitle) {
 
-    animeName.value = '';
+      animeEditorTitle.textContent =
+        'Create New Anime';
 
-    animeDescription.value = '';
+    }
 
-    animeEditor.classList.remove(
+
+    if (animeSaveText) {
+
+      animeSaveText.textContent =
+        'Create Anime';
+
+    }
+
+
+    if (animeName) {
+
+      animeName.value =
+        '';
+
+    }
+
+
+    if (animeDescription) {
+
+      animeDescription.value =
+        '';
+
+    }
+
+
+    animeEditor?.classList.remove(
       'hidden'
     );
 
-    animeName.focus();
+
+    animeName?.focus();
 
   }
 );
 
 
 /* =========================================================
-   EDIT ANIME OPEN
+   EDIT ANIME
 ========================================================= */
 
 editAnimeButton?.addEventListener(
@@ -1038,25 +1254,44 @@ editAnimeButton?.addEventListener(
       selectedAnime.id;
 
 
-    animeEditorTitle.textContent =
-      'Edit Anime';
+    if (animeEditorTitle) {
 
-    animeSaveText.textContent =
-      'Save Changes';
+      animeEditorTitle.textContent =
+        'Edit Anime';
 
-
-    animeName.value =
-      selectedAnime.name || '';
-
-    animeDescription.value =
-      selectedAnime.description || '';
+    }
 
 
-    animeEditor.classList.remove(
+    if (animeSaveText) {
+
+      animeSaveText.textContent =
+        'Save Changes';
+
+    }
+
+
+    if (animeName) {
+
+      animeName.value =
+        selectedAnime.name || '';
+
+    }
+
+
+    if (animeDescription) {
+
+      animeDescription.value =
+        selectedAnime.description || '';
+
+    }
+
+
+    animeEditor?.classList.remove(
       'hidden'
     );
 
-    animeName.focus();
+
+    animeName?.focus();
 
   }
 );
@@ -1068,9 +1303,11 @@ editAnimeButton?.addEventListener(
 
 function closeAnimeEditorHandler() {
 
-  editingAnimeId = null;
+  editingAnimeId =
+    null;
 
-  animeEditor.classList.add(
+
+  animeEditor?.classList.add(
     'hidden'
   );
 
@@ -1081,6 +1318,7 @@ closeAnimeEditor?.addEventListener(
   'click',
   closeAnimeEditorHandler
 );
+
 
 cancelAnimeButton?.addEventListener(
   'click',
@@ -1100,10 +1338,10 @@ animeForm?.addEventListener(
 
 
     const name =
-      animeName.value.trim();
+      animeName?.value.trim() || '';
 
     const description =
-      animeDescription.value.trim();
+      animeDescription?.value.trim() || '';
 
 
     if (!name) {
@@ -1116,6 +1354,10 @@ animeForm?.addEventListener(
       return;
 
     }
+
+
+    const wasEditing =
+      Boolean(editingAnimeId);
 
 
     try {
@@ -1143,11 +1385,8 @@ animeForm?.addEventListener(
               method: 'PUT',
 
               body: JSON.stringify({
-
                 name,
-
                 description
-
               })
 
             }
@@ -1162,11 +1401,8 @@ animeForm?.addEventListener(
               method: 'POST',
 
               body: JSON.stringify({
-
                 name,
-
                 description
-
               })
 
             }
@@ -1176,21 +1412,34 @@ animeForm?.addEventListener(
 
 
       selectedAnime =
-        result.anime;
+        result?.anime || null;
 
 
       await loadAnime();
 
 
-      animeSelect.value =
-        selectedAnime.id;
+      if (selectedAnime && animeSelect) {
+
+        animeSelect.value =
+          selectedAnime.id;
+
+      }
 
 
-      editAnimeButton.disabled =
-        false;
+      if (editAnimeButton) {
 
-      newSeasonButton.disabled =
-        false;
+        editAnimeButton.disabled =
+          !selectedAnime;
+
+      }
+
+
+      if (newSeasonButton) {
+
+        newSeasonButton.disabled =
+          !selectedAnime;
+
+      }
 
 
       await loadSeasons();
@@ -1200,7 +1449,7 @@ animeForm?.addEventListener(
 
 
       setStatus(
-        editingAnimeId
+        wasEditing
           ? 'Anime updated successfully.'
           : 'Anime created successfully.',
         'success'
@@ -1212,9 +1461,11 @@ animeForm?.addEventListener(
       console.error(error);
 
       setStatus(
-        error.message,
+        error?.message ||
+        'Failed to save anime.',
         'error'
       );
+
 
     } finally {
 
@@ -1223,13 +1474,14 @@ animeForm?.addEventListener(
           'button[type="submit"]'
         );
 
+
       if (button) {
 
         button.disabled =
           false;
 
         button.textContent =
-          editingAnimeId
+          wasEditing
             ? 'Save Changes'
             : 'Create Anime';
 
@@ -1254,26 +1506,40 @@ newSeasonButton?.addEventListener(
     }
 
 
-    editingSeasonId = null;
+    editingSeasonId =
+      null;
 
 
-    seasonEditorTitle.textContent =
-      'Create Season';
+    if (seasonEditorTitle) {
 
-    seasonSaveText.textContent =
-      'Create Season';
+      seasonEditorTitle.textContent =
+        'Create Season';
 
-
-    seasonNumberInput.value =
-      getNextSeasonNumber();
+    }
 
 
-    seasonEditor.classList.remove(
+    if (seasonSaveText) {
+
+      seasonSaveText.textContent =
+        'Create Season';
+
+    }
+
+
+    if (seasonNumberInput) {
+
+      seasonNumberInput.value =
+        getNextSeasonNumber();
+
+    }
+
+
+    seasonEditor?.classList.remove(
       'hidden'
     );
 
 
-    seasonNumberInput.focus();
+    seasonNumberInput?.focus();
 
   }
 );
@@ -1286,7 +1552,9 @@ newSeasonButton?.addEventListener(
 function getNextSeasonNumber() {
 
   if (!seasons.length) {
+
     return 1;
+
   }
 
 
@@ -1305,7 +1573,7 @@ function getNextSeasonNumber() {
 
 
 /* =========================================================
-   EDIT SEASON OPEN
+   EDIT SEASON
 ========================================================= */
 
 editSeasonButton?.addEventListener(
@@ -1321,23 +1589,36 @@ editSeasonButton?.addEventListener(
       selectedSeason.id;
 
 
-    seasonEditorTitle.textContent =
-      'Edit Season';
+    if (seasonEditorTitle) {
 
-    seasonSaveText.textContent =
-      'Save Changes';
+      seasonEditorTitle.textContent =
+        'Edit Season';
 
-
-    seasonNumberInput.value =
-      selectedSeason.seasonNumber;
+    }
 
 
-    seasonEditor.classList.remove(
+    if (seasonSaveText) {
+
+      seasonSaveText.textContent =
+        'Save Changes';
+
+    }
+
+
+    if (seasonNumberInput) {
+
+      seasonNumberInput.value =
+        selectedSeason.seasonNumber;
+
+    }
+
+
+    seasonEditor?.classList.remove(
       'hidden'
     );
 
 
-    seasonNumberInput.focus();
+    seasonNumberInput?.focus();
 
   }
 );
@@ -1349,9 +1630,11 @@ editSeasonButton?.addEventListener(
 
 function closeSeasonEditorHandler() {
 
-  editingSeasonId = null;
+  editingSeasonId =
+    null;
 
-  seasonEditor.classList.add(
+
+  seasonEditor?.classList.add(
     'hidden'
   );
 
@@ -1362,6 +1645,7 @@ closeSeasonEditor?.addEventListener(
   'click',
   closeSeasonEditorHandler
 );
+
 
 cancelSeasonButton?.addEventListener(
   'click',
@@ -1387,7 +1671,7 @@ seasonForm?.addEventListener(
 
     const number =
       Number(
-        seasonNumberInput.value
+        seasonNumberInput?.value
       );
 
 
@@ -1404,6 +1688,10 @@ seasonForm?.addEventListener(
       return;
 
     }
+
+
+    const wasEditing =
+      Boolean(editingSeasonId);
 
 
     try {
@@ -1431,10 +1719,8 @@ seasonForm?.addEventListener(
               method: 'PUT',
 
               body: JSON.stringify({
-
                 seasonNumber:
                   number
-
               })
 
             }
@@ -1468,7 +1754,7 @@ seasonForm?.addEventListener(
 
 
       const targetId =
-        result.season?.id;
+        result?.season?.id;
 
 
       if (targetId) {
@@ -1477,7 +1763,8 @@ seasonForm?.addEventListener(
           seasons.find(
             season =>
               season.id === targetId
-          ) || selectedSeason;
+          ) || null;
+
 
         renderSeasons();
 
@@ -1492,7 +1779,7 @@ seasonForm?.addEventListener(
 
 
       setStatus(
-        editingSeasonId
+        wasEditing
           ? 'Season updated successfully.'
           : 'Season created successfully.',
         'success'
@@ -1504,9 +1791,11 @@ seasonForm?.addEventListener(
       console.error(error);
 
       setStatus(
-        error.message,
+        error?.message ||
+        'Failed to save season.',
         'error'
       );
+
 
     } finally {
 
@@ -1515,13 +1804,14 @@ seasonForm?.addEventListener(
           'button[type="submit"]'
         );
 
+
       if (button) {
 
         button.disabled =
           false;
 
         button.textContent =
-          editingSeasonId
+          wasEditing
             ? 'Save Changes'
             : 'Create Season';
 
@@ -1540,6 +1830,18 @@ seasonForm?.addEventListener(
 addEpisodeButton?.addEventListener(
   'click',
   () => {
+
+    if (!selectedSeason) {
+
+      setStatus(
+        'Please select a season first.',
+        'error'
+      );
+
+      return;
+
+    }
+
 
     createUploadRow();
 
@@ -1622,7 +1924,9 @@ function getNextEpisodeNumber() {
 
 
   if (!numbers.length) {
+
     return 1;
+
   }
 
 
@@ -1640,6 +1944,11 @@ function getNextEpisodeNumber() {
 ========================================================= */
 
 function renderUploadQueue() {
+
+  if (!uploadQueue) {
+    return;
+  }
+
 
   uploadQueue.innerHTML =
     uploadItems.map(
@@ -1678,10 +1987,13 @@ function renderUploadQueue() {
             <div class="field">
 
               <label>
+
                 Episode Name
+
                 <span class="optional">
                   Optional
                 </span>
+
               </label>
 
               <input
@@ -1707,6 +2019,7 @@ function renderUploadQueue() {
                 class="queue-file"
                 accept="video/*"
               >
+
 
               <span class="queue-file-name">
 
@@ -1764,6 +2077,7 @@ function renderUploadQueue() {
       const id =
         row.dataset.id;
 
+
       const item =
         uploadItems.find(
           upload =>
@@ -1781,10 +2095,12 @@ function renderUploadQueue() {
           '.queue-episode-number'
         );
 
+
       const titleInput =
         row.querySelector(
           '.queue-title'
         );
+
 
       const fileInput =
         row.querySelector(
@@ -1867,6 +2183,11 @@ function renderUploadQueue() {
 
 function updateUploadButton() {
 
+  if (!uploadAllButton) {
+    return;
+  }
+
+
   uploadAllButton.disabled =
     !selectedSeason ||
     !uploadItems.length ||
@@ -1887,17 +2208,38 @@ uploadAllButton?.addEventListener(
   async () => {
 
     if (!selectedAnime) {
+
+      setStatus(
+        'Please select an anime.',
+        'error'
+      );
+
       return;
+
     }
 
 
     if (!selectedSeason) {
+
+      setStatus(
+        'Please select a season.',
+        'error'
+      );
+
       return;
+
     }
 
 
     if (!uploadItems.length) {
+
+      setStatus(
+        'Please add at least one episode.',
+        'error'
+      );
+
       return;
+
     }
 
 
@@ -1918,10 +2260,6 @@ uploadAllButton?.addEventListener(
     }
 
 
-    /*
-     * Prevent duplicate episode numbers.
-     */
-
     const numbers =
       uploadItems.map(
         item =>
@@ -1929,6 +2267,24 @@ uploadAllButton?.addEventListener(
             item.episodeNumber
           )
       );
+
+
+    if (
+      numbers.some(
+        number =>
+          !Number.isInteger(number) ||
+          number < 1
+      )
+    ) {
+
+      setStatus(
+        'Every episode must have a valid episode number.',
+        'error'
+      );
+
+      return;
+
+    }
 
 
     const uniqueNumbers =
@@ -1955,12 +2311,30 @@ uploadAllButton?.addEventListener(
       uploadAllButton.disabled =
         true;
 
-      overallProgressBox.classList.remove(
+
+      overallProgressBox?.classList.remove(
         'hidden'
       );
 
 
-      let completed = 0;
+      if (overallProgressBar) {
+
+        overallProgressBar.style.width =
+          '0%';
+
+      }
+
+
+      if (overallProgressPercent) {
+
+        overallProgressPercent.textContent =
+          '0%';
+
+      }
+
+
+      let completed =
+        0;
 
 
       for (
@@ -1984,8 +2358,10 @@ uploadAllButton?.addEventListener(
               const total =
                 uploadItems.length;
 
+
               const currentProgress =
                 percent / 100;
+
 
               const overall =
                 (
@@ -2004,14 +2380,28 @@ uploadAllButton?.addEventListener(
                 );
 
 
-              overallProgressBar.style.width =
-                `${rounded}%`;
+              if (overallProgressBar) {
 
-              overallProgressPercent.textContent =
-                `${rounded}%`;
+                overallProgressBar.style.width =
+                  `${rounded}%`;
 
-              overallProgressText.textContent =
-                `Uploading episode ${completed + 1} of ${total}...`;
+              }
+
+
+              if (overallProgressPercent) {
+
+                overallProgressPercent.textContent =
+                  `${rounded}%`;
+
+              }
+
+
+              if (overallProgressText) {
+
+                overallProgressText.textContent =
+                  `Uploading episode ${completed + 1} of ${total}...`;
+
+              }
 
             }
           );
@@ -2029,16 +2419,24 @@ uploadAllButton?.addEventListener(
 
         } catch (error) {
 
-          console.error(error);
+          console.error(
+            `Episode ${item.episodeNumber} upload error:`,
+            error
+          );
+
 
           item.status =
             'error';
+
 
           renderUploadQueue();
 
 
           setStatus(
-            `Episode ${item.episodeNumber}: ${error.message}`,
+            `Episode ${item.episodeNumber}: ${
+              error?.message ||
+              'Upload failed.'
+            }`,
             'error'
           );
 
@@ -2047,14 +2445,28 @@ uploadAllButton?.addEventListener(
       }
 
 
-      overallProgressBar.style.width =
-        '100%';
+      if (overallProgressBar) {
 
-      overallProgressPercent.textContent =
-        '100%';
+        overallProgressBar.style.width =
+          '100%';
 
-      overallProgressText.textContent =
-        'Upload process completed.';
+      }
+
+
+      if (overallProgressPercent) {
+
+        overallProgressPercent.textContent =
+          '100%';
+
+      }
+
+
+      if (overallProgressText) {
+
+        overallProgressText.textContent =
+          'Upload process completed.';
+
+      }
 
 
       await loadEpisodes();
@@ -2082,9 +2494,11 @@ uploadAllButton?.addEventListener(
       console.error(error);
 
       setStatus(
-        error.message,
+        error?.message ||
+        'Upload process failed.',
         'error'
       );
+
 
     } finally {
 
@@ -2118,10 +2532,28 @@ async function uploadSingleEpisode(
   }
 
 
-  /*
-   * Step 1:
-   * Get Cloudinary signature.
-   */
+  if (!selectedAnime) {
+
+    throw new Error(
+      'Anime is not selected.'
+    );
+
+  }
+
+
+  if (!selectedSeason) {
+
+    throw new Error(
+      'Season is not selected.'
+    );
+
+  }
+
+
+  /* -------------------------------------------------------
+     STEP 1
+     Get Cloudinary signature
+  ------------------------------------------------------- */
 
   const signature =
     await adminApi(
@@ -2141,10 +2573,25 @@ async function uploadSingleEpisode(
     );
 
 
-  /*
-   * Step 2:
-   * Upload directly to Cloudinary.
-   */
+  if (
+    !signature ||
+    !signature.cloud_name ||
+    !signature.api_key ||
+    !signature.timestamp ||
+    !signature.signature
+  ) {
+
+    throw new Error(
+      'Invalid Cloudinary signature response.'
+    );
+
+  }
+
+
+  /* -------------------------------------------------------
+     STEP 2
+     Upload directly to Cloudinary
+  ------------------------------------------------------- */
 
   const cloudinaryUrl =
     `https://api.cloudinary.com/v1_1/${
@@ -2163,30 +2610,43 @@ async function uploadSingleEpisode(
     file
   );
 
+
   formData.append(
     'api_key',
     signature.api_key
   );
+
 
   formData.append(
     'timestamp',
     signature.timestamp
   );
 
+
   formData.append(
     'signature',
     signature.signature
   );
 
-  formData.append(
-    'folder',
-    signature.folder
-  );
 
-  formData.append(
-    'public_id',
-    signature.public_id
-  );
+  if (signature.folder) {
+
+    formData.append(
+      'folder',
+      signature.folder
+    );
+
+  }
+
+
+  if (signature.public_id) {
+
+    formData.append(
+      'public_id',
+      signature.public_id
+    );
+
+  }
 
 
   const uploadResult =
@@ -2197,10 +2657,19 @@ async function uploadSingleEpisode(
     );
 
 
-  /*
-   * Step 3:
-   * Save episode in Firestore.
-   */
+  if (!uploadResult?.public_id) {
+
+    throw new Error(
+      'Cloudinary did not return a public ID.'
+    );
+
+  }
+
+
+  /* -------------------------------------------------------
+     STEP 3
+     Save episode in backend
+  ------------------------------------------------------- */
 
   const episodeNumber =
     Number(
@@ -2248,7 +2717,7 @@ async function uploadSingleEpisode(
 
 
 /* =========================================================
-   CLOUDINARY XMLHttpRequest UPLOAD
+   CLOUDINARY XHR UPLOAD
 ========================================================= */
 
 function uploadToCloudinary(
@@ -2266,15 +2735,20 @@ function uploadToCloudinary(
 
       xhr.open(
         'POST',
-        url
+        url,
+        true
       );
 
 
       xhr.upload.onprogress =
         event => {
 
-          if (!event.lengthComputable) {
+          if (
+            !event.lengthComputable
+          ) {
+
             return;
+
           }
 
 
@@ -2365,6 +2839,18 @@ function uploadToCloudinary(
         };
 
 
+      xhr.ontimeout =
+        () => {
+
+          reject(
+            new Error(
+              'Cloudinary upload timed out.'
+            )
+          );
+
+        };
+
+
       xhr.send(
         formData
       );
@@ -2405,7 +2891,9 @@ async function editEpisodeHandler(
   if (
     newNumber === null
   ) {
+
     return;
+
   }
 
 
@@ -2420,7 +2908,7 @@ async function editEpisodeHandler(
     number < 1
   ) {
 
-    alert(
+    window.alert(
       'Enter a valid episode number.'
     );
 
@@ -2439,7 +2927,9 @@ async function editEpisodeHandler(
   if (
     newTitle === null
   ) {
+
     return;
+
   }
 
 
@@ -2481,7 +2971,8 @@ async function editEpisodeHandler(
     console.error(error);
 
     setStatus(
-      error.message,
+      error?.message ||
+      'Failed to update episode.',
       'error'
     );
 
@@ -2554,7 +3045,8 @@ async function deleteEpisodeHandler(
     console.error(error);
 
     setStatus(
-      error.message,
+      error?.message ||
+      'Failed to delete episode.',
       'error'
     );
 
@@ -2574,3 +3066,34 @@ if (
   renderUploadQueue();
 
 }
+
+
+/* =========================================================
+   INITIAL BUTTON STATE
+========================================================= */
+
+if (editAnimeButton) {
+
+  editAnimeButton.disabled =
+    true;
+
+}
+
+
+if (newSeasonButton) {
+
+  newSeasonButton.disabled =
+    true;
+
+}
+
+
+if (editSeasonButton) {
+
+  editSeasonButton.disabled =
+    true;
+
+}
+
+
+updateUploadButton();

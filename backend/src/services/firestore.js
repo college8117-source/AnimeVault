@@ -37,31 +37,21 @@ export async function findAnimeByName(name) {
       .trim()
       .toLowerCase();
 
-
   if (!normalizedName) {
     return null;
   }
 
-
   const snapshot = await firestore()
     .collection("anime")
-    .where(
-      "nameLower",
-      "==",
-      normalizedName
-    )
+    .where("nameLower", "==", normalizedName)
     .limit(1)
     .get();
-
 
   if (snapshot.empty) {
     return null;
   }
 
-
-  return serialize(
-    snapshot.docs[0]
-  );
+  return serialize(snapshot.docs[0]);
 }
 
 
@@ -77,74 +67,38 @@ export async function getAnime(id) {
       .doc(id)
       .get();
 
-
   if (!animeDoc.exists) {
     return null;
   }
 
-
   const seasonSnapshot =
     await firestore()
       .collection("seasons")
-      .where(
-        "animeId",
-        "==",
-        id
-      )
-      .orderBy(
-        "seasonNumber"
-      )
+      .where("animeId", "==", id)
+      .orderBy("seasonNumber")
       .get();
-
 
   const seasons = [];
 
-
-  for (
-    const seasonDoc
-    of seasonSnapshot.docs
-  ) {
+  for (const seasonDoc of seasonSnapshot.docs) {
 
     const episodeSnapshot =
       await firestore()
         .collection("episodes")
-        .where(
-          "seasonId",
-          "==",
-          seasonDoc.id
-        )
-        .orderBy(
-          "episodeNumber"
-        )
+        .where("seasonId", "==", seasonDoc.id)
+        .orderBy("episodeNumber")
         .get();
 
-
     seasons.push({
-
-      ...serialize(
-        seasonDoc
-      ),
-
-      episodes:
-        episodeSnapshot.docs.map(
-          serialize
-        )
-
+      ...serialize(seasonDoc),
+      episodes: episodeSnapshot.docs.map(serialize)
     });
-
   }
 
-
   return {
-
-    ...serialize(
-      animeDoc
-    ),
-
+    ...serialize(animeDoc),
     seasons
-
   };
-
 }
 
 
@@ -160,11 +114,9 @@ export async function getEpisode(id) {
       .doc(id)
       .get();
 
-
   return doc.exists
     ? serialize(doc)
     : null;
-
 }
 
 
@@ -172,28 +124,16 @@ export async function getEpisode(id) {
    GET ALL SEASONS FOR ANIME
 ========================================================= */
 
-export async function listSeasons(
-  animeId
-) {
+export async function listSeasons(animeId) {
 
   const snapshot =
     await firestore()
       .collection("seasons")
-      .where(
-        "animeId",
-        "==",
-        animeId
-      )
-      .orderBy(
-        "seasonNumber"
-      )
+      .where("animeId", "==", animeId)
+      .orderBy("seasonNumber")
       .get();
 
-
-  return snapshot.docs.map(
-    serialize
-  );
-
+  return snapshot.docs.map(serialize);
 }
 
 
@@ -201,28 +141,16 @@ export async function listSeasons(
    GET ALL EPISODES FOR SEASON
 ========================================================= */
 
-export async function listEpisodes(
-  seasonId
-) {
+export async function listEpisodes(seasonId) {
 
   const snapshot =
     await firestore()
       .collection("episodes")
-      .where(
-        "seasonId",
-        "==",
-        seasonId
-      )
-      .orderBy(
-        "episodeNumber"
-      )
+      .where("seasonId", "==", seasonId)
+      .orderBy("episodeNumber")
       .get();
 
-
-  return snapshot.docs.map(
-    serialize
-  );
-
+  return snapshot.docs.map(serialize);
 }
 
 
@@ -236,47 +164,33 @@ export async function createAnime({
 }) {
 
   const cleanName =
-    String(name || "")
-      .trim();
-
+    String(name || "").trim();
 
   if (!cleanName) {
-
-    throw new Error(
-      "Anime name is required."
-    );
-
+    throw new Error("Anime name is required.");
   }
-
 
   const existing =
-    await findAnimeByName(
-      cleanName
-    );
-
+    await findAnimeByName(cleanName);
 
   if (existing) {
-    return existing;
+    throw new Error(
+      "Another anime with this name already exists."
+    );
   }
-
 
   const now =
     new Date().toISOString();
 
-
   const cleanDescription =
-    String(
-      description || ""
-    ).trim();
-
+    String(description || "").trim();
 
   const ref =
     await firestore()
       .collection("anime")
       .add({
 
-        name:
-          cleanName,
+        name: cleanName,
 
         nameLower:
           cleanName.toLowerCase(),
@@ -289,17 +203,13 @@ export async function createAnime({
 
         updatedAt:
           now
-
       });
-
 
   return {
 
-    id:
-      ref.id,
+    id: ref.id,
 
-    name:
-      cleanName,
+    name: cleanName,
 
     nameLower:
       cleanName.toLowerCase(),
@@ -312,9 +222,7 @@ export async function createAnime({
 
     updatedAt:
       now
-
   };
-
 }
 
 
@@ -335,55 +243,34 @@ export async function updateAnime(
       .collection("anime")
       .doc(id);
 
-
   const doc =
     await ref.get();
 
-
   if (!doc.exists) {
-
-    throw new Error(
-      "Anime not found."
-    );
-
+    throw new Error("Anime not found.");
   }
-
 
   const cleanName =
-    String(name || "")
-      .trim();
-
+    String(name || "").trim();
 
   if (!cleanName) {
-
-    throw new Error(
-      "Anime name is required."
-    );
-
+    throw new Error("Anime name is required.");
   }
 
-
   const existing =
-    await findAnimeByName(
-      cleanName
-    );
-
+    await findAnimeByName(cleanName);
 
   if (
     existing &&
     existing.id !== id
   ) {
-
     throw new Error(
       "Another anime with this name already exists."
     );
-
   }
-
 
   const now =
     new Date().toISOString();
-
 
   const updates = {
 
@@ -394,20 +281,13 @@ export async function updateAnime(
       cleanName.toLowerCase(),
 
     description:
-      String(
-        description || ""
-      ).trim(),
+      String(description || "").trim(),
 
     updatedAt:
       now
-
   };
 
-
-  await ref.update(
-    updates
-  );
-
+  await ref.update(updates);
 
   return {
 
@@ -416,9 +296,7 @@ export async function updateAnime(
     ...doc.data(),
 
     ...updates
-
   };
-
 }
 
 
@@ -434,36 +312,25 @@ export async function findSeason(
   const snapshot =
     await firestore()
       .collection("seasons")
-      .where(
-        "animeId",
-        "==",
-        animeId
-      )
+      .where("animeId", "==", animeId)
       .where(
         "seasonNumber",
         "==",
-        Number(
-          seasonNumber
-        )
+        Number(seasonNumber)
       )
       .limit(1)
       .get();
-
 
   if (snapshot.empty) {
     return null;
   }
 
-
-  return serialize(
-    snapshot.docs[0]
-  );
-
+  return serialize(snapshot.docs[0]);
 }
 
 
 /* =========================================================
-   CREATE OR GET SEASON
+   CREATE SEASON
 ========================================================= */
 
 export async function createSeason({
@@ -472,10 +339,16 @@ export async function createSeason({
 }) {
 
   const number =
-    Number(
-      seasonNumber
-    );
+    Number(seasonNumber);
 
+  if (
+    !Number.isInteger(number) ||
+    number < 1
+  ) {
+    throw new Error(
+      "Season number must be a positive integer."
+    );
+  }
 
   const existing =
     await findSeason(
@@ -483,15 +356,14 @@ export async function createSeason({
       number
     );
 
-
   if (existing) {
-    return existing;
+    throw new Error(
+      `Season ${number} already exists for this anime.`
+    );
   }
-
 
   const now =
     new Date().toISOString();
-
 
   const ref =
     await firestore()
@@ -508,9 +380,7 @@ export async function createSeason({
 
         updatedAt:
           now
-
       });
-
 
   return {
 
@@ -527,9 +397,7 @@ export async function createSeason({
 
     updatedAt:
       now
-
   };
-
 }
 
 
@@ -543,45 +411,31 @@ export async function updateSeason(
 ) {
 
   const number =
-    Number(
-      seasonNumber
-    );
-
+    Number(seasonNumber);
 
   if (
     !Number.isInteger(number) ||
     number < 1
   ) {
-
     throw new Error(
       "Season number must be a positive integer."
     );
-
   }
-
 
   const ref =
     firestore()
       .collection("seasons")
       .doc(id);
 
-
   const doc =
     await ref.get();
 
-
   if (!doc.exists) {
-
-    throw new Error(
-      "Season not found."
-    );
-
+    throw new Error("Season not found.");
   }
-
 
   const data =
     doc.data();
-
 
   const existing =
     await findSeason(
@@ -589,22 +443,17 @@ export async function updateSeason(
       number
     );
 
-
   if (
     existing &&
     existing.id !== id
   ) {
-
     throw new Error(
       `Season ${number} already exists for this anime.`
     );
-
   }
-
 
   const now =
     new Date().toISOString();
-
 
   await ref.update({
 
@@ -613,9 +462,7 @@ export async function updateSeason(
 
     updatedAt:
       now
-
   });
-
 
   return {
 
@@ -628,9 +475,7 @@ export async function updateSeason(
 
     updatedAt:
       now
-
   };
-
 }
 
 
@@ -646,31 +491,20 @@ export async function findEpisode(
   const snapshot =
     await firestore()
       .collection("episodes")
-      .where(
-        "seasonId",
-        "==",
-        seasonId
-      )
+      .where("seasonId", "==", seasonId)
       .where(
         "episodeNumber",
         "==",
-        Number(
-          episodeNumber
-        )
+        Number(episodeNumber)
       )
       .limit(1)
       .get();
-
 
   if (snapshot.empty) {
     return null;
   }
 
-
-  return serialize(
-    snapshot.docs[0]
-  );
-
+  return serialize(snapshot.docs[0]);
 }
 
 
@@ -678,15 +512,19 @@ export async function findEpisode(
    CREATE EPISODE
 ========================================================= */
 
-export async function createEpisode(
-  data
-) {
+export async function createEpisode(data) {
 
   const episodeNumber =
-    Number(
-      data.episodeNumber
-    );
+    Number(data.episodeNumber);
 
+  if (
+    !Number.isInteger(episodeNumber) ||
+    episodeNumber < 1
+  ) {
+    throw new Error(
+      "Episode number must be a positive integer."
+    );
+  }
 
   const existing =
     await findEpisode(
@@ -694,19 +532,14 @@ export async function createEpisode(
       episodeNumber
     );
 
-
   if (existing) {
-
     throw new Error(
       `Episode ${episodeNumber} already exists in this season.`
     );
-
   }
-
 
   const now =
     new Date().toISOString();
-
 
   const episodeData = {
 
@@ -719,34 +552,22 @@ export async function createEpisode(
     episodeNumber,
 
     title:
-      String(
-        data.title || ""
-      ).trim(),
+      String(data.title || "").trim(),
 
     description:
-      String(
-        data.description || ""
-      ).trim(),
+      String(data.description || "").trim(),
 
     language:
-      String(
-        data.language || ""
-      ).trim(),
+      String(data.language || "").trim(),
 
     duration:
-      String(
-        data.duration || ""
-      ).trim(),
+      String(data.duration || "").trim(),
 
     fileName:
-      String(
-        data.fileName || ""
-      ).trim(),
+      String(data.fileName || "").trim(),
 
     fileSize:
-      Number(
-        data.fileSize || 0
-      ),
+      Number(data.fileSize || 0),
 
     cloudinaryPublicId:
       data.cloudinaryPublicId,
@@ -759,17 +580,12 @@ export async function createEpisode(
 
     updatedAt:
       now
-
   };
-
 
   const ref =
     await firestore()
       .collection("episodes")
-      .add(
-        episodeData
-      );
-
+      .add(episodeData);
 
   return {
 
@@ -777,9 +593,7 @@ export async function createEpisode(
       ref.id,
 
     ...episodeData
-
   };
-
 }
 
 
@@ -797,23 +611,15 @@ export async function updateEpisode(
       .collection("episodes")
       .doc(id);
 
-
   const doc =
     await ref.get();
 
-
   if (!doc.exists) {
-
-    throw new Error(
-      "Episode not found."
-    );
-
+    throw new Error("Episode not found.");
   }
-
 
   const oldData =
     doc.data();
-
 
   const episodeNumber =
     Number(
@@ -821,20 +627,14 @@ export async function updateEpisode(
       oldData.episodeNumber
     );
 
-
   if (
-    !Number.isInteger(
-      episodeNumber
-    ) ||
+    !Number.isInteger(episodeNumber) ||
     episodeNumber < 1
   ) {
-
     throw new Error(
       "Episode number must be a positive integer."
     );
-
   }
-
 
   const existing =
     await findEpisode(
@@ -842,22 +642,17 @@ export async function updateEpisode(
       episodeNumber
     );
 
-
   if (
     existing &&
     existing.id !== id
   ) {
-
     throw new Error(
       `Episode ${episodeNumber} already exists in this season.`
     );
-
   }
-
 
   const now =
     new Date().toISOString();
-
 
   const updates = {
 
@@ -886,14 +681,9 @@ export async function updateEpisode(
 
     updatedAt:
       now
-
   };
 
-
-  await ref.update(
-    updates
-  );
-
+  await ref.update(updates);
 
   return {
 
@@ -902,49 +692,9 @@ export async function updateEpisode(
     ...oldData,
 
     ...updates
-
   };
-
 }
 
-
-/* =========================================================
-   DELETE EPISODE
-========================================================= */
-
-export async function deleteEpisode(
-  id
-) {
-
-  const ref =
-    firestore()
-      .collection("episodes")
-      .doc(id);
-
-
-  const doc =
-    await ref.get();
-
-
-  if (!doc.exists) {
-
-    throw new Error(
-      "Episode not found."
-    );
-
-  }
-
-
-  const episode =
-    serialize(doc);
-
-
-  await ref.delete();
-
-
-  return episode;
-
-}
 
 /* =========================================================
    DELETE EPISODE
@@ -953,19 +703,23 @@ export async function deleteEpisode(
 export async function deleteEpisode(id) {
 
   if (!id) {
-    throw new Error('Episode ID is required.');
+    throw new Error(
+      "Episode ID is required."
+    );
   }
 
   const ref =
     firestore()
-      .collection('episodes')
+      .collection("episodes")
       .doc(id);
 
   const doc =
     await ref.get();
 
   if (!doc.exists) {
-    throw new Error('Episode not found.');
+    throw new Error(
+      "Episode not found."
+    );
   }
 
   const episode =
