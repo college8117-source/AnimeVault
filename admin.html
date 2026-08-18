@@ -29,707 +29,521 @@
 <body>
 
 
-<!-- =====================================================
-     HEADER
-===================================================== -->
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
 
-<header class="header">
+  <header class="header">
 
-  <a
-    href="index.html"
-    class="logo"
-  >
-
-    <img
-      src="./assets/logo.png"
-      alt="AnimeVault Logo"
+    <a
+      href="index.html"
+      class="logo"
     >
 
-    <span>AnimeVault</span>
+      <img
+        src="./assets/logo.png"
+        alt="AnimeVault Logo"
+      >
 
-  </a>
+      <span>AnimeVault</span>
 
-
-  <nav>
-
-    <a href="index.html">
-      Home
     </a>
 
-  </nav>
 
-</header>
+    <nav>
 
+      <a href="index.html">
+        Home
+      </a>
 
+    </nav>
 
-<!-- =====================================================
-     MAIN
-===================================================== -->
+  </header>
 
-<main class="container">
 
 
-<section class="panel admin-panel">
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
 
+  <main class="container">
 
-<!-- =====================================================
-     LOGIN
-===================================================== -->
 
-<div id="loginBox">
+    <section class="panel admin-panel">
 
 
-  <div class="admin-heading">
+      <!-- =================================================
+           ADMIN HEADING
+      ================================================== -->
 
-    <span class="eyebrow">
-      ADMIN CONTROL CENTER
-    </span>
-
-    <h1>
-      Anime Management
-    </h1>
-
-    <p class="muted">
-      Manage anime, seasons and episodes from one place.
-    </p>
-
-  </div>
-
-
-  <form
-    id="loginForm"
-    class="form"
-  >
-
-
-    <div class="field">
-
-      <label for="email">
-        Admin Email
-      </label>
-
-      <input
-        id="email"
-        type="email"
-        placeholder="Enter admin email"
-        autocomplete="email"
-        required
-      >
-
-    </div>
-
-
-    <div class="field">
-
-      <label for="password">
-        Password
-      </label>
-
-      <input
-        id="password"
-        type="password"
-        placeholder="Enter password"
-        autocomplete="current-password"
-        required
-      >
-
-    </div>
-
-
-    <button
-      type="submit"
-      class="primary-button"
-    >
-      Login
-    </button>
-
-
-  </form>
-
-
-</div>
-
-
-
-<!-- =====================================================
-     ADMIN AREA
-===================================================== -->
-
-<div
-  id="adminArea"
-  class="hidden"
->
-
-
-<!-- =====================================================
-     TOP BAR
-===================================================== -->
-
-<div class="admin-topbar">
-
-
-  <div>
-
-    <span class="admin-badge">
-      ADMIN
-    </span>
-
-    <span class="admin-status">
-      Control Panel
-    </span>
-
-  </div>
-
-
-  <button
-    id="logout"
-    type="button"
-    class="logout-button"
-  >
-    Logout
-  </button>
-
-
-</div>
-
-
-
-<!-- =====================================================
-     ANIME SELECTOR
-===================================================== -->
-
-<section class="manager-section">
-
-
-  <div class="section-heading">
-
-
-    <span class="section-number">
-      01
-    </span>
-
-
-    <div>
-
-      <h2>
-        Anime
-      </h2>
-
-      <p class="muted">
-        Select an existing anime or create a new one.
-      </p>
-
-    </div>
-
-
-  </div>
-
-
-
-  <div class="manager-toolbar">
-
-
-    <div class="field">
-
-      <label for="animeSelect">
-        Existing Anime
-      </label>
-
-      <select id="animeSelect">
-
-        <option value="">
-          Select Anime
-        </option>
-
-      </select>
-
-    </div>
-
-
-    <button
-      id="newAnimeButton"
-      type="button"
-      class="secondary-button"
-    >
-      + New Anime
-    </button>
-
-
-    <button
-      id="editAnimeButton"
-      type="button"
-      class="secondary-button"
-      disabled
-    >
-      Edit Anime
-    </button>
-
-
-  </div>
-
-
-
-  <!-- =================================================
-       NEW / EDIT ANIME FORM
-  ================================================= -->
-
-  <div
-    id="animeEditor"
-    class="editor-card hidden"
-  >
-
-
-    <div class="editor-header">
-
-      <div>
+      <div class="admin-heading">
 
         <span class="eyebrow">
-          ANIME
+          ADMIN CONTROL CENTER
         </span>
 
-        <h3 id="animeEditorTitle">
-          Create New Anime
-        </h3>
-
-      </div>
-
-
-      <button
-        id="closeAnimeEditor"
-        type="button"
-        class="icon-button"
-      >
-        ×
-      </button>
-
-    </div>
-
-
-
-    <form id="animeForm">
-
-
-      <input
-        id="animeName"
-        type="text"
-        placeholder="Anime name"
-        required
-      >
-
-
-      <textarea
-        id="animeDescription"
-        rows="4"
-        placeholder="Anime description"
-      ></textarea>
-
-
-      <div class="editor-actions">
-
-        <button
-          type="submit"
-          class="primary-button"
-        >
-          <span id="animeSaveText">
-            Create Anime
-          </span>
-        </button>
-
-        <button
-          id="cancelAnimeButton"
-          type="button"
-          class="secondary-button"
-        >
-          Cancel
-        </button>
-
-      </div>
-
-
-    </form>
-
-
-  </div>
-
-
-</section>
-
-
-
-<!-- =====================================================
-     SEASONS
-===================================================== -->
-
-<section class="manager-section">
-
-
-  <div class="section-heading">
-
-
-    <span class="section-number">
-      02
-    </span>
-
-
-    <div>
-
-      <h2>
-        Seasons
-      </h2>
-
-      <p class="muted">
-        Select a season to manage its episodes.
-      </p>
-
-    </div>
-
-
-  </div>
-
-
-
-  <div
-    id="seasonTabs"
-    class="season-tabs"
-  >
-
-    <div class="empty-state">
-      Select an anime first.
-    </div>
-
-  </div>
-
-
-
-  <div class="season-actions">
-
-
-    <button
-      id="newSeasonButton"
-      type="button"
-      class="secondary-button"
-      disabled
-    >
-      + Add Season
-    </button>
-
-
-    <button
-      id="editSeasonButton"
-      type="button"
-      class="secondary-button"
-      disabled
-    >
-      Edit Season
-    </button>
-
-
-  </div>
-
-
-
-  <!-- =================================================
-       SEASON EDITOR
-  ================================================= -->
-
-  <div
-    id="seasonEditor"
-    class="editor-card hidden"
-  >
-
-
-    <div class="editor-header">
-
-      <div>
-
-        <span class="eyebrow">
-          SEASON
-        </span>
-
-        <h3 id="seasonEditorTitle">
-          Create Season
-        </h3>
-
-      </div>
-
-
-      <button
-        id="closeSeasonEditor"
-        type="button"
-        class="icon-button"
-      >
-        ×
-      </button>
-
-    </div>
-
-
-
-    <form id="seasonForm">
-
-
-      <div class="field">
-
-        <label for="seasonNumber">
-          Season Number
-        </label>
-
-        <input
-          id="seasonNumber"
-          type="number"
-          min="1"
-          step="1"
-          placeholder="e.g. 1"
-          required
-        >
-
-      </div>
-
-
-      <div class="editor-actions">
-
-        <button
-          type="submit"
-          class="primary-button"
-        >
-          <span id="seasonSaveText">
-            Create Season
-          </span>
-        </button>
-
-
-        <button
-          id="cancelSeasonButton"
-          type="button"
-          class="secondary-button"
-        >
-          Cancel
-        </button>
-
-      </div>
-
-
-    </form>
-
-
-  </div>
-
-
-</section>
-
-
-
-<!-- =====================================================
-     EPISODES
-===================================================== -->
-
-<section class="manager-section">
-
-
-  <div class="section-heading">
-
-
-    <span class="section-number">
-      03
-    </span>
-
-
-    <div>
-
-      <h2>
-        Episodes
-      </h2>
-
-      <p class="muted">
-        Upload, edit or delete episodes.
-      </p>
-
-    </div>
-
-
-  </div>
-
-
-
-  <!-- CURRENT SEASON -->
-
-  <div
-    id="selectedSeasonInfo"
-    class="selected-season-info"
-  >
-    Select a season.
-  </div>
-
-
-
-  <!-- =================================================
-       EPISODE LIST
-  ================================================= -->
-
-  <div
-    id="episodeList"
-    class="episode-manager-list"
-  >
-
-    <div class="empty-state">
-      Select a season to see episodes.
-    </div>
-
-  </div>
-
-
-
-  <!-- =================================================
-       ADD MULTIPLE EPISODES
-  ================================================= -->
-
-  <div
-    id="uploadSection"
-    class="upload-section hidden"
-  >
-
-
-    <div class="upload-heading">
-
-
-      <div>
-
-        <span class="eyebrow">
-          UPLOAD
-        </span>
-
-        <h3>
-          Add Multiple Episodes
-        </h3>
+        <h1>
+          Upload Anime
+        </h1>
 
         <p class="muted">
-          Select multiple video files and upload them together.
+          Add your anime information and upload the episode video.
         </p>
 
       </div>
 
 
-      <button
-        id="addEpisodeButton"
-        type="button"
-        class="secondary-button"
-      >
-        + Add Episode
-      </button>
+
+      <!-- =================================================
+           LOGIN
+      ================================================== -->
+
+      <div id="loginBox">
+
+        <form
+          id="loginForm"
+          class="form"
+        >
 
 
-    </div>
+          <!-- ADMIN EMAIL -->
+
+          <div class="field">
+
+            <label for="email">
+              Admin Email
+            </label>
+
+            <input
+              id="email"
+              type="email"
+              placeholder="Enter admin email"
+              autocomplete="email"
+              required
+            >
+
+          </div>
 
 
 
-    <!-- =================================================
-         EPISODE UPLOAD ROWS
-    ================================================= -->
+          <!-- PASSWORD -->
 
-    <div
-      id="uploadQueue"
-      class="upload-queue"
-    ></div>
+          <div class="field">
+
+            <label for="password">
+              Password
+            </label>
+
+            <input
+              id="password"
+              type="password"
+              placeholder="Enter password"
+              autocomplete="current-password"
+              required
+            >
+
+          </div>
 
 
 
-    <!-- =================================================
-         UPLOAD ALL
-    ================================================= -->
+          <!-- LOGIN BUTTON -->
 
-    <div class="upload-footer">
+          <button
+            type="submit"
+            class="primary-button"
+          >
+            Login
+          </button>
 
+
+        </form>
+
+      </div>
+
+
+
+      <!-- =================================================
+           ADMIN AREA
+      ================================================== -->
 
       <div
-        id="overallProgressBox"
-        class="progress-box hidden"
+        id="adminArea"
+        class="hidden"
       >
 
 
-        <div class="progress-header">
+        <!-- =================================================
+             ADMIN TOP BAR
+        ================================================== -->
 
-          <span>
-            Uploading Episodes
-          </span>
+        <div class="admin-topbar">
 
-          <span id="overallProgressPercent">
-            0%
-          </span>
+          <div>
+
+            <span class="admin-badge">
+              ADMIN
+            </span>
+
+            <span class="admin-status">
+              Control Panel
+            </span>
+
+          </div>
+
+
+          <button
+            id="logout"
+            type="button"
+            class="logout-button"
+          >
+            Logout
+          </button>
 
         </div>
 
 
-        <div class="progress-track">
 
-          <div
-            id="overallProgressBar"
-            class="progress-bar"
-            style="width:0%"
-          ></div>
+        <!-- =================================================
+             UPLOAD SECTION
+        ================================================== -->
+
+        <div class="upload-section">
+
+
+          <div class="section-heading">
+
+            <span class="section-number">
+              01
+            </span>
+
+            <div>
+
+              <h2>
+                Anime Information
+              </h2>
+
+              <p class="muted">
+                Enter the basic information of the anime.
+              </p>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- =================================================
+               EPISODE FORM
+          ================================================== -->
+
+          <form
+            id="episodeForm"
+            class="upload-form"
+          >
+
+
+            <!-- =================================================
+                 ANIME NAME
+            ================================================== -->
+
+            <div class="field full-width">
+
+              <label for="animeName">
+                Anime Name
+              </label>
+
+              <input
+                id="animeName"
+                type="text"
+                placeholder="Enter anime name"
+                autocomplete="off"
+                required
+              >
+
+            </div>
+
+
+
+            <!-- =================================================
+                 DESCRIPTION
+            ================================================== -->
+
+            <div class="field full-width">
+
+              <label for="animeDescription">
+                Description
+              </label>
+
+              <textarea
+                id="animeDescription"
+                placeholder="Enter anime description"
+                rows="4"
+              ></textarea>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 SEASON NUMBER
+            ================================================== -->
+
+            <div class="field">
+
+              <label for="seasonNumber">
+                Season Number
+              </label>
+
+              <input
+                id="seasonNumber"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="e.g. 1"
+                required
+              >
+
+            </div>
+
+
+
+            <!-- =================================================
+                 EPISODE NUMBER
+            ================================================== -->
+
+            <div class="field">
+
+              <label for="episodeNumber">
+                Episode Number
+              </label>
+
+              <input
+                id="episodeNumber"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="e.g. 1"
+                required
+              >
+
+            </div>
+
+
+
+            <!-- =================================================
+                 EPISODE NAME
+            ================================================== -->
+
+            <div class="field full-width">
+
+              <label for="episodeTitle">
+
+                Episode Name
+
+                <span class="optional">
+                  Optional
+                </span>
+
+              </label>
+
+              <input
+                id="episodeTitle"
+                type="text"
+                placeholder="Enter episode name"
+                autocomplete="off"
+              >
+
+            </div>
+
+
+
+            <!-- =================================================
+                 VIDEO FILE
+            ================================================== -->
+
+            <div class="field full-width">
+
+              <label>
+                Episode Video
+              </label>
+
+
+              <div
+                id="fileDropZone"
+                class="file-drop-zone"
+              >
+
+
+                <input
+                  id="videoFile"
+                  type="file"
+                  accept="video/*"
+                  hidden
+                  required
+                >
+
+
+                <div class="file-icon">
+                  ↑
+                </div>
+
+
+                <h3>
+                  Choose Episode Video
+                </h3>
+
+
+                <p class="muted">
+                  Select a video file to upload to Cloudinary.
+                </p>
+
+
+                <button
+                  id="chooseFileButton"
+                  type="button"
+                  class="secondary-button"
+                >
+                  Choose File
+                </button>
+
+
+                <p
+                  id="selectedFile"
+                  class="selected-file"
+                >
+                  No file selected
+                </p>
+
+
+              </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 UPLOAD PROGRESS
+            ================================================== -->
+
+            <div
+              id="uploadProgressBox"
+              class="progress-box hidden"
+            >
+
+
+              <div class="progress-header">
+
+                <span>
+                  Uploading...
+                </span>
+
+                <span id="progressPercent">
+                  0%
+                </span>
+
+              </div>
+
+
+              <div class="progress-track">
+
+                <div
+                  id="progressBar"
+                  class="progress-bar"
+                  style="width: 0%"
+                ></div>
+
+              </div>
+
+
+              <p
+                id="uploadProgressText"
+                class="muted"
+              >
+                Preparing upload...
+              </p>
+
+
+            </div>
+
+
+
+            <!-- =================================================
+                 STATUS
+            ================================================== -->
+
+            <div
+              id="uploadStatusBox"
+              class="status-box hidden"
+            >
+
+              <span id="uploadStatusIcon">
+                ✓
+              </span>
+
+              <span id="uploadStatus">
+                Upload successful
+              </span>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 SUBMIT
+            ================================================== -->
+
+            <div class="upload-action">
+
+              <button
+                id="uploadButton"
+                type="submit"
+                class="upload-button"
+              >
+
+                <span id="uploadButtonText">
+                  Upload Anime
+                </span>
+
+              </button>
+
+            </div>
+
+
+          </form>
+
 
         </div>
-
-
-        <p
-          id="overallProgressText"
-          class="muted"
-        >
-          Preparing...
-        </p>
 
 
       </div>
 
 
 
-      <button
-        id="uploadAllButton"
-        type="button"
-        class="upload-button"
-        disabled
-      >
-        Upload All Episodes
-      </button>
+      <!-- =================================================
+           GLOBAL STATUS
+      ================================================== -->
+
+      <p
+        id="adminStatus"
+        class="muted admin-message"
+      ></p>
 
 
-    </div>
+    </section>
 
 
-  </div>
-
-
-</section>
+  </main>
 
 
 
-<!-- =====================================================
-     GLOBAL STATUS
-===================================================== -->
+  <!-- =====================================================
+       ADMIN SCRIPT
+  ====================================================== -->
 
-<p
-  id="adminStatus"
-  class="muted admin-message"
-></p>
-
-
-</div>
-
-
-</section>
-
-
-</main>
-
-
-
-<!-- =====================================================
-     ADMIN SCRIPT
-===================================================== -->
-
-<script
-  type="module"
-  src="js/admin.js"
-></script>
+  <script
+    type="module"
+    src="js/admin.js"
+  ></script>
 
 
 </body>
